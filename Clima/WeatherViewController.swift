@@ -8,9 +8,12 @@
 
 import UIKit
 import CoreLocation
+import Alamofire
+import SwiftyJSON
+//import MapKit
 
 
-class WeatherViewController: UIViewController {
+class WeatherViewController: UIViewController, CLLocationManagerDelegate {
     
     //Constants
     let WEATHER_URL = "http://api.openweathermap.org/data/2.5/weather"
@@ -18,6 +21,7 @@ class WeatherViewController: UIViewController {
     
 
     //TODO: Declare instance variables here
+    let locationManager = CLLocationManager()
     
 
     
@@ -32,7 +36,10 @@ class WeatherViewController: UIViewController {
         
         
         //TODO:Set up the location manager here.
-    
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
         
         
     }
@@ -43,7 +50,37 @@ class WeatherViewController: UIViewController {
     /***************************************************************/
     
     //Write the getWeatherData method here:
-    
+    func getWeatherData(url: String, parameters: [String: String]){
+
+        Alamofire.request(url, method: .get, parameters: parameters).responseJSON { response in
+
+            if response.result.isSuccess {
+
+                print("Request: \(String(describing: response.request))")   // original url request
+                print("Response: \(String(describing: response.response))") // http url response
+                print("Result: \(response.result)")                         // response serialization result
+
+                if let json = response.result.value {
+                    print("JSON: \(json)") // serialized json response
+                }
+
+                if let data = response.data, let utf8Text = String(data: data, encoding: .utf8) {
+                    print("Data: \(utf8Text)") // original server data as UTF8 string
+                }
+            }else{
+
+
+                if let error = response.result.error?.localizedDescription{
+                    NSLog(error)
+                    self.cityLabel.text = "connection issues"
+                }
+
+            }
+
+
+        }
+
+    }
 
     
     
@@ -76,10 +113,46 @@ class WeatherViewController: UIViewController {
     
     
     //Write the didUpdateLocations method here:
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        let location = locations[locations.count - 1]
+
+        if location.horizontalAccuracy > 0{
+            locationManager.stopUpdatingLocation()
+
+            print("\(location.coordinate.latitude) / \(location.coordinate.longitude)")
+
+            let lat = String(location.coordinate.latitude)
+            let lon = String(location.coordinate.longitude)
+
+            let params: [String : String] = ["lat" : lat, "lon" : lon, "appid" : APP_ID]
+
+            getWeatherData(url: WEATHER_URL, parameters: params )
+
+            fetchCityAndCountry(from: location) { (city, country, error) in
+                guard let city = city, let country = country, error == nil else { return }
+                print(city + ", " + country)
+                self.cityLabel.text = city
+            }
+        }
+    }
+
+    //Write the fetchCityAndCountry method here:
+    func fetchCityAndCountry(from location: CLLocation, completion: @escaping (_ city: String?, _ country:  String?, _ error: Error?) -> ()) {
+        CLGeocoder().reverseGeocodeLocation(location) { placemarks, error in
+            completion(placemarks?.first?.locality,
+                       placemarks?.first?.country,
+                       error)
+        }
+    }
     
     
     
     //Write the didFailWithError method here:
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        NSLog(error.localizedDescription)
+        cityLabel.text = error.localizedDescription
+    }
     
     
     
