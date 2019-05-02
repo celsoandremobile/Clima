@@ -8,12 +8,12 @@
 
 import UIKit
 
-class WeatherDataModel {
+class WeatherDataModel : Codable {
 
     //Declare your model variables here
-    var temperature : Int = 0
+    var temperature: Int = 0
 
-    var condition : Int = 0
+    var condition: Int = 0
 
     var city: String = ""
 

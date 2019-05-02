@@ -13,7 +13,7 @@ import SwiftyJSON
 //import MapKit
 
 
-class WeatherViewController: UIViewController, CLLocationManagerDelegate {
+class WeatherViewController: UIViewController, CLLocationManagerDelegate, ChangeCityDelegate {
     
     //Constants
     let WEATHER_URL = "http://api.openweathermap.org/data/2.5/weather"
@@ -188,10 +188,23 @@ class WeatherViewController: UIViewController, CLLocationManagerDelegate {
     
     
     //Write the userEnteredANewCityName Delegate method here:
+    func userEnterANewCity(city: String) {
+        print(city)
+    }
     
 
     
     //Write the PrepareForSegue Method here
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "changeCityName" {
+
+            let destinationVC = segue.destination as! ChangeCityViewController
+
+            destinationVC.delegate = self
+
+
+        }
+    }
     
     
     
