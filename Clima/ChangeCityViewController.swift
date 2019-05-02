@@ -30,12 +30,36 @@ class ChangeCityViewController: UIViewController {
     //This is the IBAction that gets called when the user taps on the "Get Weather" button:
     @IBAction func getWeatherPressed(_ sender: AnyObject) {
 
-        
         //1 Get the city name the user entered in the text field
-        let city = changeCityTextField.text!
+        //let city = changeCityTextField.text!
+        guard let newCity = changeCityTextField.text, !newCity.isNilOrEmpty() else {
+
+            let alert = UIAlertController(title: "Alert", message: "Por gentileza preencher o campo cidade", preferredStyle: .alert)
+
+            alert.addAction(UIAlertAction(title: "OK", style: .cancel, handler: { action in
+
+                switch action.style{
+                case .default:
+                    print("default")
+
+                case .cancel:
+                    print("cancel")
+
+                case .destructive:
+                    print("destructive")
+
+
+                }}))
+            self.present(alert, animated: true, completion: nil)
+
+
+            return
+        }
+
+
         
         //2 If we have a delegate set, call the method userEnteredANewCityName
-        delegate?.userEnterANewCity(city: city)
+        delegate?.userEnterANewCity(city: newCity)
         
         //3 dismiss the Change City View Controller to go back to the WeatherViewController
         self.dismiss(animated: true, completion: nil)
